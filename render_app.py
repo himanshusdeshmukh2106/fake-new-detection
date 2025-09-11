@@ -9,8 +9,8 @@ from webapp import app
 from factcheck.utils.utils import load_yaml
 from factcheck import FactCheck
 
-def main():
-    """Initialize and run the Flask app for Render"""
+def create_app():
+    """Initialize and configure the Flask app for production"""
     
     # Load API config
     config_file = os.environ.get('API_CONFIG_FILE', 'api_config_production.yaml')
@@ -40,7 +40,7 @@ def main():
         print("Set these as environment variables in Render:")
         for key in missing_keys:
             print(f"  - {key}")
-        exit(1)
+        raise RuntimeError(f"Missing required API keys: {missing_keys}")
     
     print("✅ All required API keys are configured")
     
@@ -58,13 +58,16 @@ def main():
     # Make factcheck_instance globally available
     app.config['FACTCHECK_INSTANCE'] = factcheck_instance
     
-    print("🚀 Starting OpenFactVerification server...")
+    print("🏭 Production app configured successfully")
     
-    # Get port from environment (Render sets this)
-    port = int(os.environ.get('PORT', 10000))
-    
-    # Run the app
-    app.run(host="0.0.0.0", port=port, debug=False)
+    return app
+
+# Create the app instance for Gunicorn
+app = create_app()
 
 if __name__ == "__main__":
-    main()
+    # For development mode
+    app = create_app()
+    port = int(os.environ.get('PORT', 10000))
+    print(f"🛠️ Development mode - serving on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=True)
