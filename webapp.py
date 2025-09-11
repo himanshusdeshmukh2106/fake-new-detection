@@ -41,12 +41,17 @@ app.jinja_env.filters["filter_evidences"] = filter_evidences
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
+        # Check if there's a configuration error
+        config_error = app.config.get('CONFIG_ERROR')
+        if config_error:
+            return render_template("main_layout.html", error=f"Configuration Error: {config_error}")
+        
         # Get global config and factcheck instance
         api_config = app.config.get('API_CONFIG', {})
         factcheck_instance = app.config.get('FACTCHECK_INSTANCE')
         
         if not factcheck_instance:
-            return render_template("main_layout.html", error="Fact-check service not available")
+            return render_template("main_layout.html", error="Fact-check service not available - configuration error")
         
         response = None
         
