@@ -4,6 +4,9 @@ import os
 keys = [
     "SERPER_API_KEY",
     "GEMINI_API_KEY",
+    "GCS_BUCKET_NAME",
+    "GCS_BASE_URL",
+    "GOOGLE_APPLICATION_CREDENTIALS",
 ]
 
 

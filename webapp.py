@@ -77,7 +77,8 @@ def index():
                 text_content = modal_normalization(
                     modal=modal_type, 
                     input=file_path, 
-                    gemini_api_key=api_config.get('GEMINI_API_KEY')
+                    gemini_api_key=api_config.get('GEMINI_API_KEY'),
+                    api_config=api_config
                 )
                 
                 # Clean up temporary file
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--retriever", type=str, default="serper")
     parser.add_argument("--modal", type=str, default="text")
     parser.add_argument("--input", type=str, default="demo_data/text.txt")
-    parser.add_argument("--api_config", type=str, default="factcheck/config/api_config.yaml")
+    parser.add_argument("--api_config", type=str, default="api_config.yaml")
     args = parser.parse_args()
 
     # Load API config from yaml file

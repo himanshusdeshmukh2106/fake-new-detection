@@ -54,7 +54,31 @@ class Decompose:
                 seed=42 + i,
             )
             try:
-                claims = eval(response)["claims"]
+                # Clean the response to handle malformed JSON from Gemini
+                cleaned_response = response.strip()
+                
+                # Try to fix common JSON formatting issues
+                if cleaned_response.startswith('{') and not cleaned_response.endswith('}'):
+                    # Missing closing brace
+                    cleaned_response += '}'
+                elif cleaned_response.startswith('{{') and not cleaned_response.endswith('}}'):
+                    # Double braces from Gemini, fix it
+                    cleaned_response = cleaned_response[1:-1] if cleaned_response.endswith('}') else cleaned_response[1:] + '}'
+                
+                # Remove any markdown code blocks
+                import re
+                cleaned_response = re.sub(r'```(?:json)?\s*([\s\S]*?)\s*```', r'\1', cleaned_response)
+                cleaned_response = cleaned_response.strip()
+                
+                # Try json.loads first, fallback to eval
+                try:
+                    import json
+                    parsed_response = json.loads(cleaned_response)
+                except json.JSONDecodeError:
+                    # Fallback to eval for cases where JSON parser fails
+                    parsed_response = eval(cleaned_response)
+                
+                claims = parsed_response["claims"]
                 if isinstance(claims, list) and len(claims) > 0:
                     break
             except Exception as e:
@@ -123,7 +147,30 @@ class Decompose:
                 seed=42 + i,
             )
             try:
-                claim2doc = eval(response)
+                # Clean the response to handle malformed JSON from Gemini
+                cleaned_response = response.strip()
+                
+                # Try to fix common JSON formatting issues
+                if cleaned_response.startswith('{') and not cleaned_response.endswith('}'):
+                    # Missing closing brace
+                    cleaned_response += '}'
+                elif cleaned_response.startswith('{{') and not cleaned_response.endswith('}}'):
+                    # Double braces from Gemini, fix it
+                    cleaned_response = cleaned_response[1:-1] if cleaned_response.endswith('}') else cleaned_response[1:] + '}'
+                
+                # Remove any markdown code blocks
+                import re
+                cleaned_response = re.sub(r'```(?:json)?\s*([\s\S]*?)\s*```', r'\1', cleaned_response)
+                cleaned_response = cleaned_response.strip()
+                
+                # Try json.loads first, fallback to eval
+                try:
+                    import json
+                    claim2doc = json.loads(cleaned_response)
+                except json.JSONDecodeError:
+                    # Fallback to eval for cases where JSON parser fails
+                    claim2doc = eval(cleaned_response)
+                
                 assert len(claim2doc) == len(claims)
                 claim2doc_detail, flag = restore(claim2doc)
                 if flag:

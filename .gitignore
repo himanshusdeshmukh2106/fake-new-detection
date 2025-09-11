@@ -170,11 +170,13 @@ log/
 # Mac
 *.DS_Store
 
-# lark key and utils
+# API keys and credentials (NEVER commit these)
 factcheck/utils/lark.py
-# openai_key_file
 factcheck/utils/openai_key.py
 factcheck/config/secret_dict.py
+api_config.yaml
+gcs-service-account.json
+*.json
 
 # gptcache file
 data_map.txt
@@ -185,4 +187,8 @@ faiss.index
 # test data
 demo_data/test_api_config.yaml
 assets/response.json
+# Keep development config file secret but allow production config
 api_config.yaml
+# Allow production config to be committed
+!api_config_production.yaml
+!*.md

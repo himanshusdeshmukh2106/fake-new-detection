@@ -26,7 +26,7 @@ def check(args):
         default_model=args.model, client=args.client, api_config=api_config, prompt=args.prompt, retriever=args.retriever
     )
 
-    content = modal_normalization(args.modal, args.input, gemini_api_key=api_config.get('GEMINI_API_KEY'))
+    content = modal_normalization(args.modal, args.input, gemini_api_key=api_config.get('GEMINI_API_KEY'), api_config=api_config)
     res = factcheck.check_text(content)
     print(json.dumps(res, indent=4))
 

@@ -73,8 +73,9 @@ python -m factcheck --modal video --input \"path/to/video.mp4\" --api_config api
 1. **File Upload** → Temporary storage
 2. **Google Cloud Storage** → Public URL generation
 3. **Gemini Vision** → Content analysis and text extraction
-4. **Fact-Checking Pipeline** → Standard claim verification
-5. **Results** → Comprehensive verification report
+4. **Claim Extraction** → Filter factual claims from visual descriptions
+5. **Fact-Checking Pipeline** → Standard claim verification
+6. **Results** → Comprehensive verification report
 
 ### **Supported File Types:**
 - **Images:** `.jpg`, `.jpeg`, `.png`, `.gif`, `.bmp`, `.webp`
@@ -85,16 +86,48 @@ python -m factcheck --modal video --input \"path/to/video.mp4\" --api_config api
 ### **Image Processing:**
 1. User uploads image via web interface
 2. Image is uploaded to Google Cloud Storage
-3. Gemini 2.5 Pro Vision analyzes the image
-4. Extracted text/claims are fact-checked
-5. Results show verification of visual content
+3. **Enhanced Gemini Vision** analyzes image with factual-focused prompts
+4. **Dual-layer filtering** extracts only verifiable factual claims
+5. Results show verification of extracted factual content
 
 ### **Video Processing:**
 1. User uploads video file
 2. Video is uploaded to Google Cloud Storage
-3. Gemini 2.5 Pro Vision analyzes video content
-4. Extracted narrative/claims are fact-checked
-5. Results show verification of video content
+3. **Enhanced Gemini Vision** analyzes video with factual-focused prompts
+4. **Frame Analysis** (fallback) extracts factual content from key frames
+5. **Dual-layer filtering** ensures only verifiable claims are extracted
+6. Results show chronological factual information from video content
+
+### **Enhanced Intelligent Claim Extraction:**
+
+The system includes **advanced claim extraction** with comprehensive filtering:
+
+**✅ STRICT INCLUSION - Extracts Only:**
+- Specific numerical facts, statistics, measurements, dates, years
+- Names of real people, organizations, institutions, companies  
+- Geographic locations, addresses, place names
+- Historical events, scientific facts, documented phenomena
+- Verifiable text content visible in images/videos (signs, labels)
+- Factual statements about real-world entities, products, services
+- Claims about relationships, affiliations, associations
+- Statements about achievements, awards, records, accomplishments
+
+**❌ STRICT EXCLUSION - Filters Out:**
+- Visual descriptions (colors, shapes, sizes, positioning)
+- **Background descriptions** ("white background", "blue sky", "green grass")
+- Aesthetic opinions ("beautiful", "stunning", "attractive", "nice")
+- **Visual composition** ("in the center", "on the left", "at the top")
+- **Object appearances** ("red car", "tall building", "large window")
+- General observations ("there is", "shows", "depicts", "contains")
+- Subjective assessments ("seems", "appears to be", "looks like")
+- **Spatial relationships** ("next to", "behind", "in front of")
+- **Visual qualities** ("bright", "dark", "clear", "blurry")
+- Weather/lighting conditions ("sunny", "well-lit", "shadowy")
+
+**Enhanced Examples:**
+- **Input:** "The image has a white background showing Einstein won the Nobel Prize in Physics in 1921"
+- **Extracted:** "Einstein won the Nobel Prize in Physics in 1921"
+- **Filtered Out:** "white background", visual descriptions
 
 ## 🛠️ **Configuration**
 
