@@ -1,4 +1,4 @@
-# Core dependencies for OpenFactVerification with Gemini API
+# Core dependencies for Fake News Detection with Gemini API
 backoff
 bs4
 flask

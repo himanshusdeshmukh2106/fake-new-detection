@@ -1,6 +1,6 @@
-# OpenFactVerification with Gemini API
+# Fake News Detection with Gemini API
 
-This version of OpenFactVerification has been configured to work exclusively with Google's Gemini API.
+This version of the Fake News Detection tool has been configured to work exclusively with Google's Gemini API.
 
 ## Quick Setup
 

@@ -1,23 +1,23 @@
 <div align="center">
   <br />
-    <a href="https://www.librai.tech">
-      <img alt="LibrAI Logo" src="./assets/librai_librai.png" alt="LibrAI Logo" width="50%" height="auto">
+
+      <img alt="Fake News Detection Logo" src="./assets/librai_librai.png" alt="Fake News Detection Logo" width="50%" height="auto">
     </a>
   <br />
 </div>
 
-# Loki: An Open-source Tool for Fact Verification
+# Fake News Detection: An Open-source Tool for Fact Verification
 
 ## Overview
-Loki is our open-source solution designed to automate the process of verifying factuality. It provides a comprehensive pipeline for dissecting long texts into individual claims, assessing their worthiness for verification, generating queries for evidence search, crawling for evidence, and ultimately verifying the claims. This tool is especially useful for journalists, researchers, and anyone interested in the factuality of information. To stay updated, please subscribe to our newsletter at [our website](https://www.librai.tech/) or join us on [Discord](https://discord.gg/ssxtFVbDdT)!
+This tool is our open-source solution designed to automate the process of verifying factuality. It provides a comprehensive pipeline for dissecting long texts into individual claims, assessing their worthiness for verification, generating queries for evidence search, crawling for evidence, and ultimately verifying the claims. This tool is especially useful for journalists, researchers, and anyone interested in the factuality of information.
 
 
 ## Quick Start
 
 ### Clone the repository and navigate to the project directory
 ```bash
-git clone https://github.com/Libr-AI/OpenFactVerification.git
-cd OpenFactVerification
+git clone https://github.com/himanshusdeshmukh2106/fake-new-detection.git
+cd fake-new-detection
 ```
 
 ### Installation with poetry (option 1)
@@ -54,7 +54,7 @@ A sample test case:
 
 ## Usage
 
-The main interface of Loki fact-checker located in `factcheck/__init__.py`, which contains the `check_response` method. This method integrates the complete fact verification pipeline, where each functionality is encapsulated in its class as described in the Features section.
+The main interface of the fact-checker located in `factcheck/__init__.py`, which contains the `check_response` method. This method integrates the complete fact verification pipeline, where each functionality is encapsulated in its class as described in the Features section.
 
 #### Used as a Library
 
@@ -95,7 +95,7 @@ python -m factcheck --modal video --input demo_data/video.m4v
 #### Customize Your Experience
 For advanced usage, please see our [user guide](docs/user_guide.md).
 
-## [Try Our Online Service](https://aip.librai.tech/login)
+
 
 <!-- 💪 **Join Our Journey to Innovation with the Supporter Edition** -->
 
@@ -103,7 +103,7 @@ As we continue to evolve and enhance our fact-checking solution, we're excited t
 
 
 Below is a screenshot of our online service.
-[Click here  to try it now!](https://aip.librai.tech/login)
+
 
 <div align="center">
 	<img src="./assets/online_screenshot.png" alt="drawing" width="80%"/>
@@ -138,9 +138,9 @@ Your support enables us to:
 
 
 
-## Contributing to Loki project
+## Contributing to the project
 
-Welcome and thank you for your interest in the Loki project! We welcome contributions and feedback from the community. To get started, please refer to our [Contribution Guidelines](https://github.com/Libr-AI/OpenFactVerification/tree/main/docs/CONTRIBUTING.md).
+Welcome and thank you for your interest in the Fake News Detection project! We welcome contributions and feedback from the community.
 
 ### Acknowledgments
 - Special thanks to all contributors who have helped in shaping this project.
@@ -154,23 +154,13 @@ add slack channel here
 
 Don’t miss out on the latest updates, feature releases, and community insights! We invite you to subscribe to our newsletter and become a part of our growing community.
 
-💌 Subscribe now at [our website](https://www.librai.tech/)!
+
 
 
 
 ## Star History
 
-> [![Star History Chart](https://api.star-history.com/svg?repos=Libr-AI/OpenFactVerification&type=Date)](https://star-history.com/#Libr-AI/OpenFactVerification&Date)
+
 
 ## Cite as
-```
-@misc{li2024lokiopensourcetoolfact,
-      title={Loki: An Open-Source Tool for Fact Verification}, 
-      author={Haonan Li and Xudong Han and Hao Wang and Yuxia Wang and Minghan Wang and Rui Xing and Yilin Geng and Zenan Zhai and Preslav Nakov and Timothy Baldwin},
-      year={2024},
-      eprint={2410.01794},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2410.01794}, 
-}
 ```

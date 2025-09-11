@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for OpenFactVerification with Gemini API
+Setup script for Fake News Detection with Gemini API
 This script installs all dependencies and downloads required models.
 """
 
@@ -21,7 +21,7 @@ def run_command(command, description):
         return False
 
 def main():
-    print("🚀 Setting up OpenFactVerification with Gemini API")
+    print("🚀 Setting up Fake News Detection with Gemini API")
     print("=" * 50)
     
     # Install requirements

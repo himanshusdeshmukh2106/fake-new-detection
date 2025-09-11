@@ -1,4 +1,4 @@
-# OpenFactVerification with Gemini 2.5 Pro Vision
+# Fake News Detection with Gemini 2.5 Pro Vision
 
 This enhanced version supports **multimodal fact-checking** with Google's Gemini 2.5 Pro Vision model.
 
