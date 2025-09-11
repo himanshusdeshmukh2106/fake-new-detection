@@ -1,6 +1,7 @@
 #!/bin/bash
 # Render Build Script
 # This runs during deployment to set up the environment
+set -e  # Exit on any error
 
 echo "🔧 Installing Python dependencies..."
 pip install -r requirements.txt
