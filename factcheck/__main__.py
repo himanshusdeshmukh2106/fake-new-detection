@@ -26,7 +26,7 @@ def check(args):
         default_model=args.model, client=args.client, api_config=api_config, prompt=args.prompt, retriever=args.retriever
     )
 
-    content = modal_normalization(args.modal, args.input)
+    content = modal_normalization(args.modal, args.input, gemini_api_key=api_config.get('GEMINI_API_KEY'))
     res = factcheck.check_text(content)
     print(json.dumps(res, indent=4))
 
@@ -41,7 +41,7 @@ def check(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, default="gpt-4o")
+    parser.add_argument("--model", type=str, default="gemini-1.5-pro")
     parser.add_argument("--client", type=str, default=None, choices=CLIENTS.keys())
     parser.add_argument("--prompt", type=str, default="chatgpt_prompt")
     parser.add_argument("--retriever", type=str, default="serper")

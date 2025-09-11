@@ -3,10 +3,7 @@ import os
 # Define all keys for the API configuration
 keys = [
     "SERPER_API_KEY",
-    "OPENAI_API_KEY",
-    "ANTHROPIC_API_KEY",
-    "LOCAL_API_KEY",
-    "LOCAL_API_URL",
+    "GEMINI_API_KEY",
 ]
 
 

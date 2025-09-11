@@ -1,7 +1,10 @@
 from flask import Flask, request, render_template, jsonify
 from factcheck.utils.llmclient import CLIENTS
+from factcheck.utils.multimodal import modal_normalization
 import argparse
 import json
+import os
+import tempfile
 
 from factcheck.utils.utils import load_yaml
 from factcheck import FactCheck
@@ -38,18 +41,81 @@ app.jinja_env.filters["filter_evidences"] = filter_evidences
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        response = request.form["response"]
-        if response == "":
-            return render_template("input.html")
-        response = factcheck_instance.check_text(response)
+        # Get global config and factcheck instance
+        api_config = app.config.get('API_CONFIG', {})
+        factcheck_instance = app.config.get('FACTCHECK_INSTANCE')
+        
+        if not factcheck_instance:
+            return render_template("main_layout.html", error="Fact-check service not available")
+        
+        response = None
+        
+        # Check if it's file upload first
+        if 'file' in request.files and request.files['file'].filename != '':
+            # Handle file upload (image or video)
+            file = request.files['file']
+            
+            # Save file temporarily
+            temp_dir = tempfile.mkdtemp()
+            file_path = os.path.join(temp_dir, file.filename)
+            file.save(file_path)
+            
+            # Determine modal type from file extension
+            file_ext = os.path.splitext(file.filename)[1].lower()
+            if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+                modal_type = 'image'
+            elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v']:
+                modal_type = 'video'
+            else:
+                # Clean up and return error
+                os.remove(file_path)
+                os.rmdir(temp_dir)
+                return render_template("main_layout.html", error="Unsupported file type. Please upload an image or video.")
+            
+            try:
+                # Process the file using multimodal processing
+                text_content = modal_normalization(
+                    modal=modal_type, 
+                    input=file_path, 
+                    gemini_api_key=api_config.get('GEMINI_API_KEY')
+                )
+                
+                # Clean up temporary file
+                os.remove(file_path)
+                os.rmdir(temp_dir)
+                
+                # Process with fact-checking
+                response = factcheck_instance.check_text(text_content)
+                
+            except Exception as e:
+                # Clean up on error
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                if os.path.exists(temp_dir):
+                    os.rmdir(temp_dir)
+                return render_template("main_layout.html", error=f"Error processing file: {str(e)}")
+                
+        else:
+            # Handle text input
+            text_response = request.form.get("response", "").strip()
+            if text_response == "":
+                return render_template("main_layout.html", error="Please enter text to fact-check or upload a file.")
+            
+            # Process with fact-checking
+            response = factcheck_instance.check_text(text_response)
 
-        # save the response json file
-        with open("assets/response.json", "w") as f:
-            json.dump(response, f)
+        # If we have a response, save it and return results
+        if response:
+            # Save the response json file
+            os.makedirs("assets", exist_ok=True)
+            with open("assets/response.json", "w") as f:
+                json.dump(response, f)
 
-        return render_template("LibrAI_fc.html", responses=response, shown_claim=0)
+            return render_template("main_layout.html", responses=response, shown_claim=0)
+        else:
+            return render_template("main_layout.html", error="No response generated. Please try again.")
 
-    return render_template("input.html")
+    return render_template("main_layout.html")
 
 
 @app.route("/shownClaim/<content_id>")
@@ -60,12 +126,12 @@ def get_content(content_id):
     with open("assets/response.json") as f:
         response = json.load(f)
 
-    return render_template("LibrAI_fc.html", responses=response, shown_claim=(int(content_id) - 1))
+    return render_template("main_layout.html", responses=response, shown_claim=(int(content_id) - 1))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, default="gpt-4o")
+    parser.add_argument("--model", type=str, default="gemini-1.5-pro")
     parser.add_argument("--client", type=str, default=None, choices=CLIENTS.keys())
     parser.add_argument("--prompt", type=str, default="chatgpt_prompt")
     parser.add_argument("--retriever", type=str, default="serper")
@@ -81,11 +147,17 @@ if __name__ == "__main__":
         print(f"Error loading api config: {e}")
         api_config = {}
 
+    # Make api_config globally available
+    app.config['API_CONFIG'] = api_config
+
     factcheck_instance = FactCheck(
         default_model=args.model,
         api_config=api_config,
         prompt=args.prompt,
         retriever=args.retriever,
     )
+
+    # Make factcheck_instance globally available
+    app.config['FACTCHECK_INSTANCE'] = factcheck_instance
 
     app.run(host="0.0.0.0", port=2024, debug=True)

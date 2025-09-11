@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <title>LibrAI-Eval | Fact-checking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <!-- ================== BEGIN core-css ================== -->
+    <link href="{{ url_for('static', filename='css/vendor.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/app.min.css') }}" rel="stylesheet">
+    <!-- ================== END core-css ================== -->
+    
+    <!-- ================== BEGIN page-css ================== -->
+    <link href="{{ url_for('static', filename='css/factcheck.css') }}" rel="stylesheet">
+    <!-- ================== END page-css ================== -->
+
+    <style>
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Left Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .sidebar h5 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .new-check-btn {
+            width: 100%;
+            margin-bottom: 20px;
+            background: #007bff;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .new-check-btn:hover {
+            background: #0056b3;
+        }
+        
+        .past-checks {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .past-checks li {
+            padding: 10px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .past-checks li:hover {
+            background: #e9ecef;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-section img {
+            height: 30px;
+            margin-right: 10px;
+        }
+        
+        /* Credibility Metrics Bar */
+        .metrics-bar {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .metric-item {
+            flex: 1;
+        }
+        
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .metric-supported { color: #28a745; }
+        .metric-refuted { color: #dc3545; }
+        .metric-controversial { color: #ffc107; }
+        .metric-total { color: #17a2b8; }
+        
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Left Input Panel */
+        .input-panel {
+            width: 45%;
+            padding: 20px;
+            background: white;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+        }
+        
+        .input-section h4 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .text-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .upload-section {
+            margin-bottom: 20px;
+        }
+        
+        .upload-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px dashed #dee2e6;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .upload-btn:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        
+        .upload-btn i {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .check-btn {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        
+        .check-btn:hover {
+            background: #218838;
+        }
+        
+        .check-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        /* Right Results Panel */
+        .results-panel {
+            width: 55%;
+            padding: 20px;
+            background: #f8f9fa;
+            overflow-y: auto;
+        }
+        
+        .results-placeholder {
+            text-align: center;
+            color: #6c757d;
+            margin-top: 50px;
+        }
+        
+        .results-placeholder i {
+            font-size: 3em;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        /* File Input Hidden */
+        .file-input {
+            display: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+            
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .input-panel, .results-panel {
+                width: 100%;
+            }
+            
+            .metrics-bar {
+                flex-wrap: wrap;
+            }
+            
+            .metric-item {
+                min-width: 50%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-gray-100">
+
+<div class="app-container">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h5>Fact Checks</h5>
+        <button class="new-check-btn" onclick="newFactCheck()">+ New Fact Check</button>
+        
+        <ul class="past-checks">
+            <!-- Past fact checks will be populated here -->
+            <li onclick="loadPastCheck(1)">University claim verification...</li>
+            <li onclick="loadPastCheck(2)">News article fact check...</li>
+            <li onclick="loadPastCheck(3)">Social media post check...</li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <div class="top-header">
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='librai_librai.png') }}" alt="LibrAI Logo">
+                <span style="font-weight: bold; font-size: 1.2em;">LibrAI Fact Check</span>
+            </div>
+            <div>
+                <span style="color: #6c757d;">team@librai.tech</span>
+            </div>
+        </div>
+        
+        <!-- Credibility Metrics Bar -->
+        <div class="metrics-bar" id="metrics-bar">
+            {% if responses %}
+            <div class="metric-item">
+                <div class="metric-value metric-total">{{ responses["summary"]["factuality"] * 100 | round(2) }}%</div>
+                <div class="metric-label">Overall Credibility</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-total">{{ responses["summary"]["num_claims"] }}</div>
+                <div class="metric-label">Total Claims</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-supported">{{ responses["summary"]["num_supported_claims"] }}</div>
+                <div class="metric-label">Supported</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-refuted">{{ responses["summary"]["num_refuted_claims"] }}</div>
+                <div class="metric-label">Refuted</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-controversial">{{ responses["summary"]["num_controversial_claims"] }}</div>
+                <div class="metric-label">Controversial</div>
+            </div>
+            {% else %}
+            <div class="metric-item">
+                <div class="metric-value metric-total">--</div>
+                <div class="metric-label">Overall Credibility</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-total">--</div>
+                <div class="metric-label">Total Claims</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-supported">--</div>
+                <div class="metric-label">Supported</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-refuted">--</div>
+                <div class="metric-label">Refuted</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value metric-controversial">--</div>
+                <div class="metric-label">Controversial</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Left Input Panel -->
+            <div class="input-panel">
+                <div class="input-section">
+                    <h4>Enter Fact to Check</h4>
+                    
+                    <form id="fact-check-form" method="POST" enctype="multipart/form-data">
+                        <textarea 
+                            class="text-input" 
+                            name="response" 
+                            placeholder="Enter the text you want to fact-check here..."
+                            id="text-input"
+                        ></textarea>
+                        
+                        <div class="upload-section">
+                            <h5 style="margin-bottom: 15px; color: #495057;">Or Upload Media</h5>
+                            <div class="upload-buttons">
+                                <div class="upload-btn" onclick="document.getElementById('file-input').click()">
+                                    <i class="fa fa-image"></i>
+                                    Add Image
+                                </div>
+                                <div class="upload-btn" onclick="document.getElementById('file-input').click()">
+                                    <i class="fa fa-video"></i>
+                                    Add Video
+                                </div>
+                            </div>
+                            <input type="file" id="file-input" name="file" class="file-input" accept="image/*,video/*" onchange="handleFileSelect(this)">
+                            <div id="file-preview" style="display: none; margin-top: 10px; padding: 10px; background: #e9ecef; border-radius: 5px;">
+                                <span id="file-name"></span>
+                                <button type="button" onclick="clearFile()" style="float: right; background: none; border: none; color: #dc3545; cursor: pointer;">✕</button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="check-btn" id="check-btn">
+                            Check Facts
+                        </button>
+                        
+                        <div id="timer" style="text-align: center; margin-top: 10px; color: #6c757d; display: none;">
+                            Processing... <span id="elapsed-time">0</span> seconds
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Right Results Panel -->
+            <div class="results-panel">
+                {% if error %}
+                    <!-- Error Message -->
+                    <div class="alert alert-danger" style="margin-bottom: 20px; padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; color: #721c24;">
+                        <h6><strong>Error:</strong></h6>
+                        <p>{{ error }}</p>
+                    </div>
+                {% endif %}
+                
+                {% if responses %}
+                    <!-- Results Content -->
+                    <h4 style="margin-bottom: 20px; color: #495057;">Fact Check Results</h4>
+                    
+                    <!-- Claims Overview -->
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h6><strong>Claims Analysis</strong></h6>
+                        </div>
+                        <div class="card-body">
+                            {% for claim_detail in responses['claim_detail'] %}
+                                <div style="margin-bottom: 15px; padding: 10px; border-radius: 5px; cursor: pointer;
+                                    {% if claim_detail['factuality'] == 0 %}background: #f8d7da; border: 1px solid #f5c6cb;
+                                    {% elif claim_detail['factuality'] == 1 %}background: #d4edda; border: 1px solid #c3e6cb;
+                                    {% else %}background: #fff3cd; border: 1px solid #ffeaa7;{% endif %}"
+                                    onclick="switchClaim({{ loop.index }})"
+                                    title="Click to view evidence for this claim">
+                                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                        <span style="background: 
+                                            {% if claim_detail['factuality'] == 0 %}#dc3545
+                                            {% elif claim_detail['factuality'] == 1 %}#28a745
+                                            {% else %}#ffc107{% endif %}; 
+                                            color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-right: 10px;">
+                                            Claim {{ loop.index }}
+                                        </span>
+                                        <span style="font-weight: bold; color: 
+                                            {% if claim_detail['factuality'] == 0 %}#721c24
+                                            {% elif claim_detail['factuality'] == 1 %}#155724
+                                            {% else %}#856404{% endif %};">
+                                            {% if claim_detail['factuality'] == 0 %}REFUTED
+                                            {% elif claim_detail['factuality'] == 1 %}SUPPORTED
+                                            {% else %}CONTROVERSIAL{% endif %}
+                                        </span>
+                                    </div>
+                                    <p style="margin: 0; font-size: 0.9em;"><strong>Claim:</strong> {{ claim_detail['claim'] }}</p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #6c757d;">{{ claim_detail['evidences'] | length }} evidence(s) found</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Evidence -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6><strong>Evidence Details</strong></h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-pills mb-3" id="pills-tab">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="pills-refutes-tab" data-bs-toggle="pill" href="#pills-refutes">
+                                        <span class="text-danger">REFUTES ({{ responses['claim_detail'][shown_claim|default(0)]["evidences"] | count_occurrences("REFUTES", "relationship") }})</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-contextualizes-tab" data-bs-toggle="pill" href="#pills-contextualizes">
+                                        <span class="text-warning">CONTEXTUALIZES ({{ responses['claim_detail'][shown_claim|default(0)]["evidences"] | count_occurrences("IRRELEVANT", "relationship") }})</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-supports-tab" data-bs-toggle="pill" href="#pills-supports">
+                                        <span class="text-success">SUPPORTS ({{ responses['claim_detail'][shown_claim|default(0)]["evidences"] | count_occurrences("SUPPORTS", "relationship") }})</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content" id="pills-tabContent">
+                                <!-- REFUTES Tab -->
+                                <div class="tab-pane fade show active" id="pills-refutes">
+                                    {% for evi in responses['claim_detail'][shown_claim|default(0)]["evidences"] | filter_evidences("REFUTES", "relationship") %}
+                                    <div class="accordion-item" style="margin-bottom: 10px;">
+                                        <div class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRefutes{{ loop.index }}">
+                                                <span class="text-danger">REFUTES - Evidence {{ loop.index }}</span>
+                                            </button>
+                                        </div>
+                                        <div id="collapseRefutes{{ loop.index }}" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <p><strong>Evidence:</strong> {{ evi["text"] }}</p>
+                                                <p><strong>Source:</strong> <a href="{{ evi.url }}" target="_blank">{{ evi.url }}</a></p>
+                                                <p><strong>Reasoning:</strong> {{ evi.reasoning }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- CONTEXTUALIZES Tab -->
+                                <div class="tab-pane fade" id="pills-contextualizes">
+                                    {% for evi in responses['claim_detail'][shown_claim|default(0)]["evidences"] | filter_evidences("IRRELEVANT", "relationship") %}
+                                    <div class="accordion-item" style="margin-bottom: 10px;">
+                                        <div class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContextualizes{{ loop.index }}">
+                                                <span class="text-warning">CONTEXTUALIZES - Evidence {{ loop.index }}</span>
+                                            </button>
+                                        </div>
+                                        <div id="collapseContextualizes{{ loop.index }}" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <p><strong>Evidence:</strong> {{ evi["text"] }}</p>
+                                                <p><strong>Source:</strong> <a href="{{ evi.url }}" target="_blank">{{ evi.url }}</a></p>
+                                                <p><strong>Reasoning:</strong> {{ evi.reasoning }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- SUPPORTS Tab -->
+                                <div class="tab-pane fade" id="pills-supports">
+                                    {% for evi in responses['claim_detail'][shown_claim|default(0)]["evidences"] | filter_evidences("SUPPORTS", "relationship") %}
+                                    <div class="accordion-item" style="margin-bottom: 10px;">
+                                        <div class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSupports{{ loop.index }}">
+                                                <span class="text-success">SUPPORTS - Evidence {{ loop.index }}</span>
+                                            </button>
+                                        </div>
+                                        <div id="collapseSupports{{ loop.index }}" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <p><strong>Evidence:</strong> {{ evi["text"] }}</p>
+                                                <p><strong>Source:</strong> <a href="{{ evi.url }}" target="_blank">{{ evi.url }}</a></p>
+                                                <p><strong>Reasoning:</strong> {{ evi.reasoning }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Placeholder when no results -->
+                    <div class="results-placeholder">
+                        <i class="fa fa-search"></i>
+                        <h5>No Results Yet</h5>
+                        <p>Enter text or upload media in the left panel to start fact-checking</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/vendor.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.min.js') }}"></script>
+
+<script>
+function newFactCheck() {
+    // Clear form and results
+    document.getElementById('text-input').value = '';
+    clearFile();
+    // You could redirect to a clean state or just clear the current state
+    window.location.href = '/';
+}
+
+function loadPastCheck(id) {
+    // Load a previous fact check
+    // This would typically load from saved results
+    alert('Loading past fact check #' + id + ' - Feature to be implemented');
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (file) {
+        document.getElementById('file-preview').style.display = 'block';
+        document.getElementById('file-name').textContent = file.name;
+        // Clear text input when file is selected
+        document.getElementById('text-input').value = '';
+    }
+}
+
+function clearFile() {
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-preview').style.display = 'none';
+}
+
+// Function to switch between claims
+function switchClaim(claimIndex) {
+    window.location.href = '/shownClaim/' + claimIndex;
+}
+
+// Form submission handling
+document.getElementById('fact-check-form').addEventListener('submit', function(e) {
+    const textInput = document.getElementById('text-input').value.trim();
+    const fileInput = document.getElementById('file-input').files[0];
+    
+    if (!textInput && !fileInput) {
+        e.preventDefault();
+        alert('Please enter text or select a file to fact-check.');
+        return;
+    }
+    
+    // Disable submit button and start timer
+    const submitBtn = document.getElementById('check-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
+    
+    // Start timer
+    const timerDiv = document.getElementById('timer');
+    timerDiv.style.display = 'block';
+    let seconds = 0;
+    const timer = setInterval(() => {
+        seconds++;
+        document.getElementById('elapsed-time').textContent = seconds;
+    }, 1000);
+    
+    // Store timer reference to clear it later if needed
+    window.factCheckTimer = timer;
+});
+
+// Clear timer on page unload
+window.addEventListener('beforeunload', function() {
+    if (window.factCheckTimer) {
+        clearInterval(window.factCheckTimer);
+    }
+});
+</script>
+
+</body>
+</html>

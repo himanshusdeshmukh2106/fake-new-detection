@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIBRAI Fact-Checking Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 300px;
+            background-color: #e8e8e8;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .new-check-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .new-check-btn:hover {
+            background-color: #e9ecef;
+        }
+
+        .past-checks {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .check-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background-color: #d4edda;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Metrics Bar */
+        .metrics-bar {
+            background-color: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .metric-card {
+            min-width: 140px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            font-weight: 500;
+        }
+
+        .metric-card.overall { background-color: #007bff; }
+        .metric-card.detected { background-color: #6c757d; }
+        .metric-card.supported { background-color: #28a745; }
+        .metric-card.conflict { background-color: #dc3545; }
+        .metric-card.controversial { background-color: #ffc107; color: #333; }
+        .metric-card.unverifiable { background-color: #6f42c1; }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Input Section */
+        .input-section {
+            width: 400px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .input-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .input-form textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .media-upload {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .media-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .media-btn:hover {
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .media-btn input {
+            display: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Results Section */
+        .results-section {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .results-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .claim-container {
+            margin-bottom: 25px;
+        }
+
+        .claim-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #e9ecef;
+            border-bottom: none;
+        }
+
+        .claim-text {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .claim-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .claim-status.supported {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .claim-status.refuted {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .claim-status.controversial {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .evidence-section {
+            border: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+            background-color: #fff;
+        }
+
+        .evidence-tabs {
+            display: flex;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .evidence-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-right: 1px solid #e9ecef;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .evidence-tab:last-child {
+            border-right: none;
+        }
+
+        .evidence-tab.active {
+            background-color: #fff;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .evidence-tab.refutes {
+            color: #dc3545;
+        }
+
+        .evidence-tab.contextualizes {
+            color: #17a2b8;
+        }
+
+        .evidence-tab.supports {
+            color: #28a745;
+        }
+
+        .evidence-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .evidence-content.active {
+            display: block;
+        }
+
+        .evidence-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .evidence-text {
+            margin-bottom: 10px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .evidence-source {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .evidence-reasoning {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #495057;
+            font-style: italic;
+        }
+
+        .no-evidence {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+            
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .input-section {
+                width: 100%;
+            }
+            
+            .metrics-bar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="breadcrumb">App / Fact-checking</div>
+            <a href="/" class="new-check-btn">
+                <span>⊕</span> New Check
+            </a>
+        </div>
+        <div class="past-checks">
+            <div class="check-item">Current fact-check results</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Metrics Bar -->
+        <div class="metrics-bar">
+            <div class="metric-card overall">
+                <div class="metric-value">{{ "%.1f"|format(responses.summary.factuality * 100) }}%</div>
+                <div class="metric-label">Overall Credibility</div>
+            </div>
+            <div class="metric-card detected">
+                <div class="metric-value">{{ responses.claim_detail|length }}</div>
+                <div class="metric-label">Detected claims</div>
+            </div>
+            <div class="metric-card supported">
+                <div class="metric-value">{{ responses.summary.num_supported_claims }}</div>
+                <div class="metric-label">Supported Well</div>
+            </div>
+            <div class="metric-card conflict">
+                <div class="metric-value">{{ responses.summary.num_refuted_claims }}</div>
+                <div class="metric-label">Conflict</div>
+            </div>
+            <div class="metric-card controversial">
+                <div class="metric-value">{{ responses.summary.num_controversial_claims }}</div>
+                <div class="metric-label">Controversial</div>
+            </div>
+            <div class="metric-card unverifiable">
+                <div class="metric-value">{{ responses.summary.get('num_unverifiable_claims', 0) }}</div>
+                <div class="metric-label">Unverifiable claim</div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Input Section -->
+            <div class="input-section">
+                <h3>Enter Fact to Check</h3>
+                
+                <!-- Text Input Form -->
+                <form method="post" action="/" id="textForm" class="input-form">
+                    <textarea name="response" placeholder="Enter your claim or statement to fact-check..."></textarea>
+                    
+                    <!-- Media Upload Buttons -->
+                    <div class="media-upload">
+                        <label class="media-btn">
+                            <input type="file" accept="image/*" onchange="handleImageUpload(this)">
+                            📷 Add Image
+                        </label>
+                        <label class="media-btn">
+                            <input type="file" accept="video/*" onchange="handleVideoUpload(this)">
+                            🎥 Add Video
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Check Fact</button>
+                </form>
+
+                <!-- Hidden File Upload Form -->
+                <form method="post" action="/" enctype="multipart/form-data" id="fileForm" style="display: none;">
+                    <input type="file" name="file" id="hiddenFileInput">
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <h3>Fact-Check Results</h3>
+                
+                {% for claim_detail in responses.claim_detail %}
+                <div class="claim-container">
+                    <!-- Claim Header -->
+                    <div class="claim-header">
+                        <div class="claim-text">{{ claim_detail.claim }}</div>
+                        {% if claim_detail.factuality %}
+                            <span class="claim-status supported">Supported</span>
+                        {% else %}
+                            <span class="claim-status refuted">Refuted</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Evidence Section -->
+                    <div class="evidence-section">
+                        <!-- Evidence Tabs -->
+                        <div class="evidence-tabs">
+                            <div class="evidence-tab refutes {% if responses.claim_detail[shown_claim].evidences | filter_evidences('REFUTES', 'relationship') | length == 0 %}disabled{% endif %}" 
+                                 onclick="showEvidence({{ loop.index0 }}, 'refutes')">
+                                REFUTES ({{ responses.claim_detail[shown_claim].evidences | filter_evidences("REFUTES", "relationship") | length }})
+                            </div>
+                            <div class="evidence-tab contextualizes {% if responses.claim_detail[shown_claim].evidences | filter_evidences('CONTEXTUALIZES', 'relationship') | length == 0 %}disabled{% endif %}"
+                                 onclick="showEvidence({{ loop.index0 }}, 'contextualizes')">
+                                CONTEXTUALIZES ({{ responses.claim_detail[shown_claim].evidences | filter_evidences("CONTEXTUALIZES", "relationship") | length }})
+                            </div>
+                            <div class="evidence-tab supports active {% if responses.claim_detail[shown_claim].evidences | filter_evidences('SUPPORTS', 'relationship') | length == 0 %}disabled{% endif %}"
+                                 onclick="showEvidence({{ loop.index0 }}, 'supports')">
+                                SUPPORTS ({{ responses.claim_detail[shown_claim].evidences | filter_evidences("SUPPORTS", "relationship") | length }})
+                            </div>
+                        </div>
+
+                        <!-- Evidence Content -->
+                        <div class="evidence-content active" id="evidence-{{ loop.index0 }}-supports">
+                            {% set supports_evidences = responses.claim_detail[shown_claim].evidences | filter_evidences("SUPPORTS", "relationship") %}
+                            {% if supports_evidences | length > 0 %}
+                                {% for evidence in supports_evidences %}
+                                <div class="evidence-item">
+                                    <div class="evidence-text">{{ evidence.text }}</div>
+                                    <div class="evidence-source"><strong>Source:</strong> {{ evidence.url }}</div>
+                                    {% if evidence.reasoning %}
+                                    <div class="evidence-reasoning"><strong>Reasoning:</strong> {{ evidence.reasoning }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-evidence">No supporting evidence found</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="evidence-content" id="evidence-{{ loop.index0 }}-refutes">
+                            {% set refutes_evidences = responses.claim_detail[shown_claim].evidences | filter_evidences("REFUTES", "relationship") %}
+                            {% if refutes_evidences | length > 0 %}
+                                {% for evidence in refutes_evidences %}
+                                <div class="evidence-item">
+                                    <div class="evidence-text">{{ evidence.text }}</div>
+                                    <div class="evidence-source"><strong>Source:</strong> {{ evidence.url }}</div>
+                                    {% if evidence.reasoning %}
+                                    <div class="evidence-reasoning"><strong>Reasoning:</strong> {{ evidence.reasoning }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-evidence">No refuting evidence found</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="evidence-content" id="evidence-{{ loop.index0 }}-contextualizes">
+                            {% set contextualizes_evidences = responses.claim_detail[shown_claim].evidences | filter_evidences("CONTEXTUALIZES", "relationship") %}
+                            {% if contextualizes_evidences | length > 0 %}
+                                {% for evidence in contextualizes_evidences %}
+                                <div class="evidence-item">
+                                    <div class="evidence-text">{{ evidence.text }}</div>
+                                    <div class="evidence-source"><strong>Source:</strong> {{ evidence.url }}</div>
+                                    {% if evidence.reasoning %}
+                                    <div class="evidence-reasoning"><strong>Reasoning:</strong> {{ evidence.reasoning }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-evidence">No contextualizing evidence found</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function showEvidence(claimIndex, type) {
+            // Hide all evidence content for this claim
+            document.querySelectorAll(`#evidence-${claimIndex}-refutes, #evidence-${claimIndex}-contextualizes, #evidence-${claimIndex}-supports`).forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs for this claim
+            document.querySelectorAll(`.evidence-tab`).forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected evidence content
+            document.getElementById(`evidence-${claimIndex}-${type}`).classList.add('active');
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+        }
+
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                submitFile(input.files[0]);
+            }
+        }
+
+        function handleVideoUpload(input) {
+            if (input.files && input.files[0]) {
+                submitFile(input.files[0]);
+            }
+        }
+
+        function submitFile(file) {
+            const fileInput = document.getElementById('hiddenFileInput');
+            const fileForm = document.getElementById('fileForm');
+            
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            
+            fileForm.submit();
+        }
+
+        // Handle text form submission
+        document.getElementById('textForm').addEventListener('submit', function(e) {
+            const textarea = document.querySelector('textarea[name="response"]');
+            if (!textarea.value.trim()) {
+                e.preventDefault();
+                alert('Please enter some text to fact-check.');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>
