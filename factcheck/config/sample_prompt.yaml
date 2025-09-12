@@ -1,15 +1,35 @@
 decompose_prompt: |
-  Your task is to decompose the text into atomic claims.
+  Your task is to decompose the text into atomic claims while preserving crucial context.
   The answer should be a JSON with a single key "claims", with the value of a list of strings, where each string should be a context-independent claim, representing one fact.
-  Note that:
+  
+  CRITICAL CONTEXT PRESERVATION RULES:
   1. Each claim should be concise (less than 15 words) and self-contained.
-  2. Avoid vague references like 'he', 'she', 'it', 'this', 'the company', 'the man' and using complete names.
-  3. Generate at least one claim for each single sentence in the texts.
+  2. Avoid vague references like 'he', 'she', 'it', 'this', 'the company', 'the man' and use complete names.
+  3. PRESERVE geographical locations, time periods, organizations, proper nouns, and causal relationships.
+  4. When breaking down complex statements, maintain location/time/entity context in each relevant claim.
+  5. Generate at least one claim for each single sentence in the texts.
 
-  For example,
+  EXAMPLES WITH CONTEXT PRESERVATION:
+  
   Text: Mary is a five-year old girl, she likes playing piano and she doesn't like cookies.
   Output:
   {{"claims": ["Mary is a five-year old girl.", "Mary likes playing piano.", "Mary doesn't like cookies."]}}
+
+  Text: Protests in Nepal occurred due to social media bans.
+  Output:
+  {{"claims": ["Protests occurred in Nepal.", "Protests in Nepal were due to social media bans.", "Social media bans were imposed in Nepal."]}}
+
+  Text: Did Elon Musk buy X in 2023?
+  Output:
+  {{"claims": ["Elon Musk bought X.", "Elon Musk bought X in 2023."]}}
+
+  Text: Was Narendra Modi involved in Godhra riots?
+  Output:
+  {{"claims": ["Narendra Modi was involved in Godhra riots.", "Godhra riots occurred."]}}
+
+  Text: Apple announced iPhone 15 launch in California during September 2023.
+  Output:
+  {{"claims": ["Apple announced iPhone 15 launch.", "Apple announced iPhone 15 launch in California.", "Apple announced iPhone 15 launch in September 2023.", "iPhone 15 launch occurred in California during September 2023."]}}
 
   Text: {doc}
   Output:
