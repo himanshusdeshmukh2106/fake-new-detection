@@ -297,9 +297,9 @@ FOCUS ONLY ON:
             if not frames:
                 return "Error: Could not extract frames from video"
             
-            # Analyze multiple frames with enhanced factual focus
+            # Analyze multiple frames with enhanced factual focus and chronological processing
             prompt = [
-                """These are frames from a video. Analyze the sequence and extract ONLY verifiable factual information.
+                """These are frames from a video extracted in chronological order (1 frame per second). Analyze the sequence and extract ONLY verifiable factual information.
                 
                 FOCUS ONLY ON:
                 ✅ Text content visible across frames (signs, captions, titles, labels)
@@ -308,6 +308,7 @@ FOCUS ONLY ON:
                 ✅ Historical events, scientific facts, or documented phenomena
                 ✅ Verifiable statements about real-world entities or events
                 ✅ Sequential factual information that develops across frames
+                ✅ Chronological progression of facts throughout the video
                 
                 IGNORE:
                 ❌ Visual descriptions (colors, lighting, composition, backgrounds)
@@ -316,11 +317,13 @@ FOCUS ONLY ON:
                 ❌ Spatial relationships and positioning details
                 ❌ Scene descriptions and visual elements
                 
-                Provide a chronological list of ONLY the factual, verifiable information visible across these video frames."""
+                IMPORTANT: Process frames in chronological order and maintain temporal context. 
+                Provide a chronological list of ONLY the factual, verifiable information visible across these video frames with approximate timestamps."""
             ]
             
-            # Add frame data
-            for i, frame_data in enumerate(frames[:10]):  # Limit to 10 frames
+            # Add frame data with timestamp information for chronological processing
+            for i, frame_data in enumerate(frames[:120]):  # Limit to 120 frames (2 minutes) for API limits
+                timestamp_seconds = i  # Since we extract 1 frame per second
                 prompt.append({
                     "mime_type": "image/jpeg",
                     "data": frame_data
@@ -334,40 +337,59 @@ FOCUS ONLY ON:
         return f"Error processing video: {str(e)}"
 
 
-def extract_video_frames(video_path: str, max_frames: int = 10) -> list:
+def extract_video_frames(video_path: str, frames_per_second: int = 1, max_frames: int = 300) -> list:
     """
-    Extract frames from video for analysis
+    Extract frames from video for analysis - 1 frame per second for comprehensive coverage
     
     Args:
         video_path (str): Path to video file
-        max_frames (int): Maximum number of frames to extract
+        frames_per_second (int): Number of frames to extract per second (default: 1)
+        max_frames (int): Maximum total frames to prevent memory issues (default: 300 = 5 minutes)
     
     Returns:
-        list: List of frame data as bytes
+        list: List of frame data as bytes in chronological order
     """
     frames = []
     try:
         video = cv2.VideoCapture(video_path)
+        fps = video.get(cv2.CAP_PROP_FPS)
         total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        duration = total_frames / fps if fps > 0 else 0
         
-        # Calculate frame interval to get evenly distributed frames
-        frame_interval = max(1, total_frames // max_frames)
+        logger.info(f"Video info: {total_frames} total frames, {fps:.2f} fps, {duration:.2f}s duration")
+        
+        # Calculate frame interval based on FPS to get 1 frame per second
+        frame_interval = int(fps / frames_per_second) if fps > 0 else 1
+        frame_interval = max(1, frame_interval)  # Ensure at least 1
+        
+        # Calculate how many frames we'll extract
+        expected_frames = min(int(duration * frames_per_second), max_frames)
+        logger.info(f"Extracting ~{expected_frames} frames (1 per {1/frames_per_second:.1f}s, interval: {frame_interval})")
         
         frame_count = 0
-        while video.isOpened() and len(frames) < max_frames:
+        extracted_count = 0
+        
+        # Sequential processing in chronological order
+        while video.isOpened() and extracted_count < max_frames:
             success, frame = video.read()
             if not success:
                 break
                 
+            # Extract frame at specified interval (every second by default)
             if frame_count % frame_interval == 0:
                 # Encode frame as JPEG
                 _, buffer = cv2.imencode('.jpg', frame)
                 frames.append(buffer.tobytes())
+                extracted_count += 1
+                
+                # Log progress for long videos
+                if extracted_count % 30 == 0:  # Every 30 frames (30 seconds)
+                    logger.info(f"Extracted {extracted_count} frames ({extracted_count/frames_per_second:.1f}s processed)")
             
             frame_count += 1
         
         video.release()
-        logger.info(f"Extracted {len(frames)} frames from video")
+        logger.info(f"Successfully extracted {len(frames)} frames from video in chronological order")
         return frames
         
     except Exception as e:

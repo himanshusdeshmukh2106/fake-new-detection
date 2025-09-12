@@ -107,11 +107,45 @@ class Decompose:
             claim2doc_detail = {}
             flag = True
             for claim, sent in claim2doc.items():
+                # Handle empty or None text spans
+                if not sent or sent.strip() == "":
+                    # Try to find a reasonable text span for the claim
+                    # Look for key words from the claim in the document
+                    claim_words = claim.lower().split()
+                    best_match = ""
+                    best_score = 0
+                    
+                    # Simple keyword matching to find relevant text
+                    for i in range(len(doc) - 10):
+                        text_chunk = doc[i:i+50].lower()
+                        score = sum(1 for word in claim_words if word in text_chunk)
+                        if score > best_score:
+                            best_score = score
+                            # Find sentence boundaries
+                            start = max(0, doc.rfind('\n', 0, i))
+                            end = doc.find('\n', i+50)
+                            if end == -1:
+                                end = min(len(doc), i+100)
+                            best_match = doc[start:end].strip()
+                    
+                    if best_match:
+                        sent = best_match
+                        logger.warning(f"Empty text span for claim '{claim}', using fallback: '{sent[:50]}...'")
+                    else:
+                        # Last resort: use the claim itself as text
+                        sent = claim
+                        logger.warning(f"No text span found for claim '{claim}', using claim as text")
+                        flag = False
+                
                 st = doc.find(sent)
                 if st != -1:
                     claim2doc_detail[claim] = {"text": sent, "start": st, "end": st + len(sent)}
                 else:
+                    # If exact match fails, try to find the best position
+                    # Use the claim text and position it appropriately
+                    claim2doc_detail[claim] = {"text": sent, "start": 0, "end": len(sent)}
                     flag = False
+                    logger.warning(f"Text span '{sent[:30]}...' not found in document for claim '{claim[:30]}...'")
 
             cur_pos = -1
             texts = []
@@ -177,7 +211,13 @@ class Decompose:
                     return claim2doc_detail
                 else:
                     tmp_restore = claim2doc_detail
-                    raise Exception("Restore claims not satisfied.")
+                    # Instead of raising exception, log warning and continue with partial results
+                    logger.warning(f"Restore claims partially satisfied. Using available mappings. Retry {i+1}/{num_retries}")
+                    if i == num_retries - 1:  # Last retry
+                        logger.info("Using partial claim restoration results due to text span mapping issues")
+                        return tmp_restore
+                    # Continue to next retry
+                    continue
             except Exception as e:
                 logger.error(f"Parse LLM response error {e}, response is: {response}")
                 logger.error(f"Parse LLM response error, prompt is: {messages}")

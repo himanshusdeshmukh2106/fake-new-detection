@@ -38,6 +38,19 @@ def filter_evidences(input_dict, target_string, key):
 app.jinja_env.filters["filter_evidences"] = filter_evidences
 
 
+# Format percentage to 2 decimal places
+def format_percentage(value):
+    """Format a decimal value as a percentage with exactly 2 decimal places."""
+    try:
+        percentage = float(value) * 100
+        return f"{percentage:.2f}"
+    except (ValueError, TypeError):
+        return "0.00"
+
+
+app.jinja_env.filters["format_percentage"] = format_percentage
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
