@@ -1,0 +1,5 @@
+# Chrome Extension Backend Requirements
+# Additional dependencies needed for the extension backend server
+
+flask>=2.3.0
+flask-cors>=4.0.0

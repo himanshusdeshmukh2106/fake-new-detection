@@ -1,0 +1,660 @@
+/* OpenFactVerification Chrome Extension - Main App Style */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    width: 500px !important;
+    min-width: 500px !important;
+    max-width: 500px !important;
+    height: auto;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
+    width: 500px !important;
+    min-width: 500px !important;
+    max-width: 500px !important;
+    min-height: 650px;
+    max-height: 750px;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* App Container */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 650px;
+    width: 500px !important;
+    background: white;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    margin: 8px;
+    backdrop-filter: blur(10px);
+}
+
+/* Top Header */
+.top-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 24px;
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-icon {
+    font-size: 22px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.app-title {
+    font-weight: 600;
+    font-size: 18px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffc107;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.connected {
+    background: #28a745;
+    animation: none;
+}
+
+.status-dot.disconnected {
+    background: #dc3545;
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Credibility Metrics Bar */
+.metrics-bar {
+    background: #f8f9fa;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+    text-align: center;
+}
+
+.metric-item {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.metric-item:hover {
+    transform: translateY(-1px);
+}
+
+.metric-value {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.metric-label {
+    font-size: 0.75em;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Metric Item Colors */
+.metric-item:nth-child(1) {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.metric-item:nth-child(1) .metric-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-item:nth-child(2) {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+}
+
+.metric-item:nth-child(2) .metric-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-item:nth-child(3) {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+}
+
+.metric-item:nth-child(3) .metric-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-item:nth-child(4) {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.metric-item:nth-child(4) .metric-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-item:nth-child(5) {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529;
+}
+
+.metric-item:nth-child(5) .metric-label {
+    color: #495057;
+}
+
+/* Input Section */
+.input-section {
+    padding: 24px;
+    background: white;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.input-section h4 {
+    margin-bottom: 20px;
+    color: #2d3748;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.input-tabs {
+    display: flex;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 15px;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6c757d;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-button.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+}
+
+.tab-button:hover {
+    background: #f8f9fa;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Text Input */
+.text-input {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Upload Section */
+.upload-section {
+    margin-bottom: 20px;
+}
+
+.upload-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.upload-btn {
+    flex: 1;
+    padding: 20px 16px;
+    border: 2px dashed #cbd5e0;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0; /* Allow flex items to shrink */
+}
+
+.upload-btn:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e6efff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.upload-icon {
+    font-size: 1.5em;
+    opacity: 0.7;
+}
+
+.upload-btn span {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.file-preview {
+    background: #e9ecef;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.clear-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px;
+}
+
+/* Page Info */
+.page-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.page-title {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.page-url {
+    font-size: 10px;
+    color: #6c757d;
+    word-break: break-all;
+}
+
+/* Action Buttons */
+.input-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn.full-width {
+    width: 100%;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.action-btn.secondary {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.action-btn.secondary:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    transform: translateY(-1px);
+}
+
+.action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Results Section */
+.results-section {
+    flex: 1;
+    padding: 24px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    overflow-y: auto;
+}
+
+.results-section h4 {
+    margin-bottom: 20px;
+    color: #2d3748;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #495057;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.loading-timer {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+/* Claims Overview */
+.claims-overview {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f3f4;
+}
+
+.claims-overview h5 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 18px;
+}
+
+.claims-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.claim-item {
+    margin-bottom: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    background: white;
+}
+
+.claim-item:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: #cbd5e0;
+}
+
+.claim-status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.claim-text {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #495057;
+    font-weight: 500;
+}
+
+.claim-evidence-count {
+    font-size: 10px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* Claim Status Colors */
+.claim-item.supported {
+    background: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.claim-item.supported .claim-status-badge {
+    background: #28a745;
+    color: white;
+}
+
+.claim-item.refuted {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.claim-item.refuted .claim-status-badge {
+    background: #dc3545;
+    color: white;
+}
+
+.claim-item.controversial {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+}
+
+.claim-item.controversial .claim-status-badge {
+    background: #ffc107;
+    color: #212529;
+}
+
+.claim-item.not-checked {
+    background: #e2e3e5;
+    border-color: #d1d3d4;
+}
+
+.claim-item.not-checked .claim-status-badge {
+    background: #6c757d;
+    color: white;
+}
+
+/* Results Actions */
+.results-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Error State */
+.error-state {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.error-icon {
+    font-size: 32px;
+    margin-bottom: 15px;
+}
+
+.error-state h3 {
+    color: #dc3545;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.error-state p {
+    color: #6c757d;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Footer */
+.popup-footer {
+    border-top: 1px solid #f1f3f4;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 0 0 16px 16px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 15px;
+}
+
+.footer-links a {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.footer-links a:hover {
+    color: #007bff;
+}
+
+.version-info {
+    font-size: 10px;
+    color: #adb5bd;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.results-section, .claim-item {
+    animation: slideIn 0.3s ease-out;
+}

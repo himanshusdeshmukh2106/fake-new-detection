@@ -203,9 +203,9 @@ class FactCheck:
         num_claims = len(claim_detail)
         num_checkworthy_claims = len(list(filter(lambda x: x.factuality != "Nothing to check.", claim_detail)))
         num_verified_claims = len(verified_claims)
-        num_supported_claims = len(list(filter(lambda x: x.factuality == 1, verified_claims)))
-        num_refuted_claims = len(list(filter(lambda x: x.factuality == 0, verified_claims)))
-        num_controversial_claims = num_verified_claims - num_supported_claims - num_refuted_claims
+        num_supported_claims = len(list(filter(lambda x: x.factuality >= 0.8, verified_claims)))
+        num_refuted_claims = len(list(filter(lambda x: x.factuality < 0.5, verified_claims)))
+        num_controversial_claims = len(list(filter(lambda x: 0.5 <= x.factuality < 0.8, verified_claims)))
         factuality = sum(map(lambda x: x.factuality, verified_claims)) / num_verified_claims if num_verified_claims != 0 else 0
 
         summary = FCSummary(

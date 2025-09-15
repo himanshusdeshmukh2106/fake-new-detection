@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extension Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Extension Debug Test</h1>
+    <p>Use this page to test if the Chrome extension is working correctly.</p>
+    
+    <button id="testConnection">Test Connection</button>
+    <button id="testScreenCapture">Test Screen Capture</button>
+    <button id="clearLogs">Clear Logs</button>
+    
+    <div id="logs"></div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log ${type}`;
+            logEntry.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            logsDiv.appendChild(logEntry);
+            console.log(message);
+        }
+        
+        document.getElementById('testConnection').addEventListener('click', async () => {
+            log('Testing connection to background script...');
+            try {
+                const response = await chrome.runtime.sendMessage({ action: 'testConnection' });
+                log('Connection test response: ' + JSON.stringify(response), 'success');
+            } catch (error) {
+                log('Connection test failed: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('testScreenCapture').addEventListener('click', async () => {
+            log('Testing screen capture message...');
+            try {
+                const response = await chrome.runtime.sendMessage({ action: 'startScreenCapture' });
+                log('Screen capture response: ' + JSON.stringify(response), response.success ? 'success' : 'error');
+            } catch (error) {
+                log('Screen capture test failed: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('clearLogs').addEventListener('click', () => {
+            document.getElementById('logs').innerHTML = '';
+        });
+        
+        // Auto test on load
+        window.addEventListener('load', () => {
+            log('Page loaded. Extension should be available.');
+        });
+    </script>
+</body>
+</html>
