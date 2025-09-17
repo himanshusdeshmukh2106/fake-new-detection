@@ -1,166 +1,82 @@
-<div align="center">
-  <br />
+# OpenFactVerification
 
-      <img alt="Fake News Detection Logo" src="./assets/librai_librai.png" alt="Fake News Detection Logo" width="50%" height="auto">
-    </a>
-  <br />
-</div>
+An open-source tool for automated fact verification that provides a comprehensive pipeline for analyzing texts, extracting claims, searching for evidence, and verifying claims.
 
-# Fake News Detection: An Open-source Tool for Fact Verification
+## Installation
 
-## Overview
-This tool is our open-source solution designed to automate the process of verifying factuality. It provides a comprehensive pipeline for dissecting long texts into individual claims, assessing their worthiness for verification, generating queries for evidence search, crawling for evidence, and ultimately verifying the claims. This tool is especially useful for journalists, researchers, and anyone interested in the factuality of information.
-
-
-## Quick Start
-
-### Clone the repository and navigate to the project directory
+1. **Clone the repository:**
 ```bash
 git clone https://github.com/himanshusdeshmukh2106/fake-new-detection.git
 cd fake-new-detection
 ```
 
-### Installation with poetry (option 1)
-1. Install Poetry by following it [installation guideline](https://python-poetry.org/docs/).
-2. Install all dependencies by running:
-```bash
-poetry install
-```
-
-### Installation with pip (option 2)
-1. Create a Python environment at version 3.9 or newer and activate it.
-
-2. Navigate to the project directory and install the required packages:
+2. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-### Configure API keys
-
-You can choose to export essential api key to the environment
-
-- Example: Export essential api key to the environment
+3. **Download spaCy language model:**
 ```bash
-export SERPER_API_KEY=... # this is required in evidence retrieval if serper being used
-export OPENAI_API_KEY=... # this is required in all tasks
+python -m spacy download en_core_web_sm
 ```
 
-Alternatively, you configure API keys via a YAML file, see [user guide](docs/user_guide.md) for more details.
+## Configuration
 
-A sample test case:
-<div align="center">
-	<img src="./assets/cmd_example.gif" alt="drawing" width="80%"/>
-</div>
+1. **Rename the configuration file:**
+```bash
+cp api_config_production.yaml api_config.yaml
+```
+
+2. **Add your API keys** to `api_config.yaml`:
+```yaml
+SERPER_API_KEY: "your_serper_api_key_here"
+GEMINI_API_KEY: "your_gemini_api_key_here"
+```
 
 ## Usage
 
-The main interface of the fact-checker located in `factcheck/__init__.py`, which contains the `check_response` method. This method integrates the complete fact verification pipeline, where each functionality is encapsulated in its class as described in the Features section.
+### Web Application
 
-#### Used as a Library
-
-```python
-from factcheck import FactCheck
-
-factcheck_instance = FactCheck()
-
-# Example text
-text = "Your text here"
-
-# Run the fact-check pipeline
-results = factcheck_instance.check_response(text)
-print(results)
-```
-
-#### Used as a Web App
+1. **Start the main web application:**
 ```bash
-python webapp.py --api_config demo_data/api_config.yaml
+python webapp.py --config api_config.yaml
 ```
 
-#### Multimodal Usage
-
+2. **Start the Chrome extension backend** (in a separate terminal):
 ```bash
-# String
-python -m factcheck --modal string --input "MBZUAI is the first AI university in the world"
-# Text
-python -m factcheck --modal text --input demo_data/text.txt
-# Speech
-python -m factcheck --modal speech --input demo_data/speech.mp3
-# Image
-python -m factcheck --modal image --input demo_data/image.webp
-# Video
-python -m factcheck --modal video --input demo_data/video.m4v
+python extension_backend.py
 ```
 
+### Chrome Extension
 
-#### Customize Your Experience
-For advanced usage, please see our [user guide](docs/user_guide.md).
+1. **Load the extension in Chrome:**
+   - Open Chrome and go to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `chrome-extension` folder
+   - Pin the extension to your toolbar
 
+2. **Use the extension:**
+   - Make sure the extension backend is running (`python extension_backend.py`)
+   - Click the extension icon in your browser toolbar
+   - Use the fact-checking features directly in your browser
 
+## API Keys Required
 
-<!-- 💪 **Join Our Journey to Innovation with the Supporter Edition** -->
+- **SERPER_API_KEY**: Get from [Serper.dev](https://serper.dev) for web search functionality
+- **GEMINI_API_KEY**: Get from [Google AI Studio](https://aistudio.google.com) for AI processing
 
-As we continue to evolve and enhance our fact-checking solution, we're excited to invite you to become an integral part of our journey. By registering for our Supporter Edition, you're not just unlocking a suite of advanced features and benefits; you're also fueling the future of trustworthy information.
+## Features
 
+- Text analysis and claim extraction
+- Evidence retrieval from web sources
+- Automated claim verification
+- Chrome extension for browser integration
+- Multimodal input support (text, images, videos)
 
-Below is a screenshot of our online service.
+## Contributing
 
+Welcome contributions! Please feel free to submit issues and pull requests.
 
-<div align="center">
-	<img src="./assets/online_screenshot.png" alt="drawing" width="80%"/>
-</div>
+## License
 
-<!--
-Your support enables us to:
-
-🚀 Innovate continuously: Develop new, cutting-edge features that keep you ahead in the fight against misinformation.
-
-💡 Improve and refine: Enhance the user experience, making our app not just powerful, but also a joy to use.
-
-🌱 Grow our community: Invest in the resources and tools our community needs to thrive and expand.
-
-🎁 And as a token of our gratitude, registering now grants you **complimentary token credits**—a little thank you from us to you, for believing in our mission and supporting our growth!
-
-<div align="center">
-
-| Feature                                | Open-Source Edition | Supporter Edition |
-|----------------------------------------|:-------------------:|:------------------:|
-| Trustworthy Verification Results       | ✅                   | ✅                  |
-| Diverse Evidence from the Open Web     | ✅                   | ✅                  |
-| Automated Correction of Misinformation | ✅                   | ✅                  |
-| Privacy and Data Security              | ✅                   | ✅                  |
-| Multimodal Input                       | ✅                   | ✅                  |
-| One-Stop Custom Solution               | ❌                   | ✅                  |
-| Customizable Verification Data Sources | ❌                   | ✅                  |
-| Enhanced User Experience               | ❌                   | ✅                  |
-| Faster Efficiency and Higher Accuracy  | ❌                   | ✅                  |
-
-</div> -->
-
-
-
-## Contributing to the project
-
-Welcome and thank you for your interest in the Fake News Detection project! We welcome contributions and feedback from the community.
-
-### Acknowledgments
-- Special thanks to all contributors who have helped in shaping this project.
-
-<!---
-add slack channel here
--->
-
-
-### Stay Connected and Informed
-
-Don’t miss out on the latest updates, feature releases, and community insights! We invite you to subscribe to our newsletter and become a part of our growing community.
-
-
-
-
-
-## Star History
-
-
-
-## Cite as
-```
+This project is open source. Please check the license file for more details.

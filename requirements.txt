@@ -1,7 +1,6 @@
-# Core dependencies for Fake News Detection with Gemini API
+# Core dependencies for OpenFactVerification
 backoff
 bs4
-flask
 google-cloud-storage
 google-generativeai
 httpx
@@ -18,6 +17,8 @@ pyyaml
 requests
 Pillow
 gunicorn
+flask>=2.3.0
+flask-cors>=4.0.0
 
 # Note: After installing requirements, run:
 # python -m spacy download en_core_web_sm
