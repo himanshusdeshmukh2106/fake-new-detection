@@ -41,11 +41,13 @@ GEMINI_API_KEY: "your_gemini_api_key_here"
 ```bash
 python webapp.py --config api_config.yaml
 ```
+   The web application will be available at: `http://localhost:5000`
 
 2. **Start the Chrome extension backend** (in a separate terminal):
 ```bash
 python extension_backend.py
 ```
+   The extension backend will run on: `http://localhost:2024`
 
 ### Chrome Extension
 
