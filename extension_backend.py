@@ -172,9 +172,46 @@ def factcheck_file():
         temp_dir = tempfile.mkdtemp()
         file_path = os.path.join(temp_dir, file.filename)
         file.save(file_path)
+        
+        # Validate saved file
+        if not os.path.exists(file_path):
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save uploaded file'
+            }), 500
+            
+        file_size = os.path.getsize(file_path)
+        if file_size == 0:
+            return jsonify({
+                'success': False,
+                'error': 'Uploaded file is empty'
+            }), 400
+            
+        logger.info(f"File saved successfully: {file_path} (size: {file_size} bytes)")
+        
+        # Debug: Check file content
+        try:
+            with open(file_path, 'rb') as debug_file:
+                first_bytes = debug_file.read(16)
+                logger.info(f"First 16 bytes of file: {first_bytes}")
+        except Exception as debug_error:
+            logger.warning(f"Could not read file for debugging: {debug_error}")
 
         try:
             logger.info(f"Processing {file_type} file: {file.filename}")
+            
+            # Additional validation for image files
+            if file_type == 'image':
+                try:
+                    from PIL import Image
+                    with Image.open(file_path) as img:
+                        logger.info(f"Image validation successful: {img.format} {img.size} {img.mode}")
+                except Exception as img_error:
+                    logger.error(f"Image validation failed: {img_error}")
+                    return jsonify({
+                        'success': False,
+                        'error': f'Invalid image file: {str(img_error)}'
+                    }), 400
             
             # Process the file using multimodal processing
             text_content = modal_normalization(
@@ -184,11 +221,9 @@ def factcheck_file():
                 api_config=api_config
             )
 
-            if not text_content:
-                return jsonify({
-                    'success': False,
-                    'error': 'No extractable content found in the file'
-                }), 400
+            if not text_content or text_content.strip() == "":
+                logger.warning("No text content extracted from file")
+                text_content = "No extractable content found in the file"
 
             # Process with fact-checking
             result = factcheck_instance.check_text(text_content)

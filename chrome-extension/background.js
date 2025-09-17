@@ -76,26 +76,91 @@ class FactCheckAPI {
     }
   }
 
-  async factCheckFile(file, fileType) {
+  async factCheckFile(fileData, fileType) {
     if (!this.isConnected) {
       throw new Error('Backend service not available. Please ensure the fact-check server is running.');
     }
 
     try {
+      // Validate file data
+      if (!fileData || !fileData.base64Data) {
+        throw new Error('Invalid file data received');
+      }
+      
+      console.log('📋 File data validation:', {
+        hasBase64Data: !!fileData.base64Data,
+        base64Length: fileData.base64Data.length,
+        fileName: fileData.name,
+        fileType: fileData.type
+      });
+      
+      // Convert base64 to blob
+      const base64Data = fileData.base64Data;
+      const base64Content = base64Data.split(',')[1]; // Remove data:image/png;base64, prefix
+      
+      if (!base64Content) {
+        throw new Error('Invalid base64 data format');
+      }
+      
+      // Convert base64 to binary
+      const binaryString = atob(base64Content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Create blob and file
+      const blob = new Blob([bytes], { type: fileData.type });
+      const file = new File([blob], fileData.name, { 
+        type: fileData.type,
+        lastModified: Date.now()
+      });
+      
+      console.log('🔄 Reconstructed file:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        originalSize: fileData.size
+      });
+      
+      // Validate reconstructed file
+      if (file.size === 0) {
+        throw new Error('File appears to be empty after reconstruction');
+      }
+      
+      if (file.size !== fileData.size) {
+        console.warn('⚠️ File size mismatch:', {
+          original: fileData.size,
+          reconstructed: file.size
+        });
+      }
+      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', fileType);
+
+      console.log('📤 Sending file to backend:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        fileType: fileType
+      });
 
       const response = await fetch(`${this.baseURL}/api/factcheck-file`, {
         method: 'POST',
         body: formData
       });
 
+      console.log('📥 Backend response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Backend error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('✅ File fact-check successful:', result);
       return result;
     } catch (error) {
       console.error('File fact-check API error:', error);
@@ -103,45 +168,7 @@ class FactCheckAPI {
     }
   }
 
-  async factCheckScreenshot(imageData) {
-    if (!this.isConnected) {
-      throw new Error('Backend service not available. Please ensure the fact-check server is running.');
-    }
 
-    try {
-      // Convert base64 image data to blob
-      const base64Data = imageData.split(',')[1]; // Remove data:image/png;base64, prefix
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'image/png' });
-      
-      // Create file from blob
-      const file = new File([blob], 'screenshot.png', { type: 'image/png' });
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'image');
-
-      const response = await fetch(`${this.baseURL}/api/factcheck-file`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('Screenshot fact-check API error:', error);
-      throw error;
-    }
-  }
 }
 
 // Initialize API instance
@@ -185,7 +212,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           return { success: true, data: result };
 
         case 'factCheckFile':
-          const fileResult = await factCheckAPI.factCheckFile(request.file, request.fileType);
+          console.log('📁 Processing file fact-check request');
+          const fileResult = await factCheckAPI.factCheckFile(request.fileData, request.fileType);
           return { success: true, data: fileResult };
 
         case 'testConnection':
@@ -202,79 +230,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const config = await factCheckAPI.getStoredConfig();
           return { success: true, config: config };
 
-        case 'startScreenCapture':
-          console.log('✅ startScreenCapture case reached!');
-          try {
-            console.log('startScreenCapture: Getting active tab');
-            // Request desktop capture permission and start screen selection
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            console.log('startScreenCapture: Active tab found:', tab.id, tab.url);
-            
-            // Check if tab is restricted
-            if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
-              console.error('Cannot inject script into restricted page:', tab.url);
-              return { success: false, error: 'Cannot capture screen on this page. Please navigate to a regular website.' };
-            }
-            
-            // Send message to content script to start screen selection
-            // (content.js is already injected via manifest)
-            console.log('startScreenCapture: Sending startScreenSelection message');
-            const messageResponse = await chrome.tabs.sendMessage(tab.id, {
-              action: 'startScreenSelection'
-            });
-            console.log('startScreenCapture: Message response:', messageResponse);
-            
-            return { success: true };
-          } catch (error) {
-            console.error('Screen capture error:', error);
-            // Provide more specific error messages
-            let errorMessage = error.message;
-            if (error.message.includes('Cannot access')) {
-              errorMessage = 'Cannot capture screen on this page. Please try on a regular website.';
-            } else if (error.message.includes('Extension context invalidated')) {
-              errorMessage = 'Extension needs to be reloaded. Please reload the extension and try again.';
-            } else if (error.message.includes('Could not establish connection')) {
-              errorMessage = 'Page not ready. Please refresh the page and try again.';
-            }
-            return { success: false, error: errorMessage };
-          }
 
-        case 'captureScreen':
-          try {
-            // Request screen capture
-            const streamId = await new Promise((resolve, reject) => {
-              chrome.desktopCapture.chooseDesktopMedia(
-                ['screen', 'window', 'tab'],
-                sender.tab,
-                (streamId) => {
-                  if (streamId) {
-                    resolve(streamId);
-                  } else {
-                    reject(new Error('Screen capture was cancelled'));
-                  }
-                }
-              );
-            });
-            
-            return { success: true, streamId: streamId };
-          } catch (error) {
-            console.error('Desktop capture error:', error);
-            return { success: false, error: error.message };
-          }
-
-        case 'processScreenshot':
-          try {
-            // Process the captured screenshot like an image file
-            const result = await factCheckAPI.factCheckScreenshot(request.imageData);
-            return { success: true, data: result };
-          } catch (error) {
-            console.error('Screenshot processing error:', error);
-            return { success: false, error: error.message };
-          }
 
         default:
           console.error('❌ Unknown action received:', request.action);
-          console.error('❌ Available actions: factCheck, factCheckFile, testConnection, updateConfig, getConfig, startScreenCapture, captureScreen, processScreenshot');
+          console.error('❌ Available actions: factCheck, factCheckFile, testConnection, updateConfig, getConfig');
           return { success: false, error: 'Unknown action: ' + request.action };
       }
     } catch (error) {

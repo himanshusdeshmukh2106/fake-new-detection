@@ -31,7 +31,6 @@ class FactCheckPopup {
     // File input actions
     document.getElementById('imageUploadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
     document.getElementById('videoUploadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
-    document.getElementById('screenCaptureBtn').addEventListener('click', () => this.initScreenCapture());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
     document.getElementById('clearFileBtn').addEventListener('click', () => this.clearFile());
     document.getElementById('factCheckFileButton').addEventListener('click', () => this.factCheckFile());
@@ -129,10 +128,29 @@ class FactCheckPopup {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      this.showError('File size must be less than 10MB.');
+    // Check for specific supported formats
+    const supportedImageFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+    const supportedVideoFormats = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm', 'video/m4v'];
+    
+    const isImageSupported = supportedImageFormats.includes(file.type.toLowerCase());
+    const isVideoSupported = supportedVideoFormats.includes(file.type.toLowerCase());
+    
+    if (!isImageSupported && !isVideoSupported) {
+      this.showError(`File format '${file.type}' is not supported. Please use JPEG, PNG, GIF, MP4, or other common formats.`);
       return;
     }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      this.showError('File size must be less than 50MB.');
+      return;
+    }
+
+    console.log('✅ File validation passed:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeFormatted: this.formatFileSize(file.size)
+    });
 
     this.selectedFile = file;
     
@@ -152,37 +170,7 @@ class FactCheckPopup {
     document.getElementById('factCheckFileButton').disabled = true;
   }
 
-  async initScreenCapture() {
-    console.log('📷 Screen capture button clicked');
-    
-    // First test if background script is responding
-    try {
-      console.log('🔍 Testing background script connection...');
-      const testResponse = await chrome.runtime.sendMessage({ action: 'testConnection' });
-      console.log('🔍 Test response:', testResponse);
-    } catch (testError) {
-      console.error('❌ Background script test failed:', testError);
-    }
-    
-    try {
-      console.log('📷 Sending startScreenCapture message to background script');
-      const response = await chrome.runtime.sendMessage({ action: 'startScreenCapture' });
-      console.log('📷 Response from background script:', response);
-      
-      if (response && response.success) {
-        console.log('Screen capture initiated successfully, closing popup');
-        // Screen capture initiated successfully - the content script will handle the selection
-        window.close(); // Close popup to allow screen selection
-      } else {
-        const errorMsg = response ? response.error : 'No response from background script';
-        console.error('Screen capture failed:', errorMsg);
-        this.showError(errorMsg || 'Failed to start screen capture');
-      }
-    } catch (error) {
-      console.error('Error in initScreenCapture:', error);
-      this.showError('Error starting screen capture: ' + error.message);
-    }
-  }
+
 
   formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
@@ -227,27 +215,105 @@ class FactCheckPopup {
       return;
     }
 
+    // Additional file validation before processing
+    if (this.selectedFile.size === 0) {
+      this.showError('Selected file is empty. Please choose a different file.');
+      return;
+    }
+    
+    console.log('🎯 Starting file validation and processing...');
+
     this.showLoading();
     this.lastAction = () => this.factCheckFile();
 
     try {
       const fileType = this.selectedFile.type.startsWith('image/') ? 'image' : 'video';
       
+      console.log('📁 File selected:', {
+        name: this.selectedFile.name,
+        type: this.selectedFile.type,
+        size: this.selectedFile.size,
+        detectedType: fileType,
+        lastModified: this.selectedFile.lastModified
+      });
+      
+      // Test file readability
+      try {
+        const testReader = new FileReader();
+        await new Promise((resolve, reject) => {
+          testReader.onload = resolve;
+          testReader.onerror = reject;
+          testReader.readAsArrayBuffer(this.selectedFile.slice(0, 100)); // Test first 100 bytes
+        });
+      } catch (readError) {
+        throw new Error('Cannot read file. The file may be corrupted or inaccessible.');
+      }
+      
+      // Convert file to base64 for reliable serialization
+      console.log('🔄 Converting file to base64...');
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(this.selectedFile);
+      });
+      
+      // Validate base64 data
+      if (!base64Data || base64Data.length < 100) {
+        throw new Error('Failed to read file content - file appears to be empty or corrupted');
+      }
+      
+      const fileData = {
+        name: this.selectedFile.name,
+        type: this.selectedFile.type,
+        size: this.selectedFile.size,
+        base64Data: base64Data
+      };
+      
+      console.log('📤 Sending file data to background script:', {
+        name: fileData.name,
+        type: fileData.type,
+        size: fileData.size,
+        base64Length: fileData.base64Data.length,
+        fileType: fileType,
+        // Add preview of base64 data
+        base64Preview: fileData.base64Data.substring(0, 50) + '...'
+      });
+      
       const response = await chrome.runtime.sendMessage({
         action: 'factCheckFile',
-        file: this.selectedFile,
+        fileData: fileData,
         fileType: fileType
       });
 
+      console.log('📥 Response from background script:', response);
+
       if (response && response.success) {
         const actualData = response.data.data || response.data;
+        console.log('✅ File processing successful:', actualData);
         this.displayResults(actualData);
       } else {
         const errorMsg = response ? response.error : 'No response from background script';
-        this.showError(errorMsg || 'Failed to fact-check file');
+        console.error('❌ File fact-check failed:', errorMsg);
+        
+        // Provide more user-friendly error messages
+        let userFriendlyError = errorMsg;
+        if (errorMsg.includes('Image format not supported')) {
+          userFriendlyError = 'This image format is not supported. Please try a JPEG, PNG, or GIF image.';
+        } else if (errorMsg.includes('API quota exceeded')) {
+          userFriendlyError = 'API limit reached. Please try again in a few minutes.';
+        } else if (errorMsg.includes('Invalid API key')) {
+          userFriendlyError = 'API key not configured. Please check your settings.';
+        } else if (errorMsg.includes('No extractable content')) {
+          userFriendlyError = 'No text or factual content found in this image.';
+        } else if (errorMsg.includes('Backend service not available')) {
+          userFriendlyError = 'Backend server not running. Please start the extension backend (python extension_backend.py).';
+        }
+        
+        this.showError(userFriendlyError);
       }
     } catch (error) {
-      console.error('Error in factCheckFile:', error);
+      console.error('❌ Error in factCheckFile:', error);
       this.showError('Error during file fact-checking: ' + error.message);
     }
   }

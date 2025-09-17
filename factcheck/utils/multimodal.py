@@ -120,6 +120,17 @@ def image2text(input_path: str, gemini_api_key: str, api_config: dict = None) ->
         str: Description of the image
     """
     try:
+        # Validate image file exists and is readable
+        if not os.path.exists(input_path):
+            return f"Error: Image file not found: {input_path}"
+            
+        # Check file size (Gemini has limits)
+        file_size = os.path.getsize(input_path)
+        if file_size > 20 * 1024 * 1024:  # 20MB limit
+            return "Error: Image file too large (max 20MB)"
+            
+        logger.info(f"Processing image: {input_path} (size: {file_size} bytes)")
+        
         # Configure Gemini
         genai.configure(api_key=gemini_api_key)
         
@@ -178,6 +189,13 @@ def image2text(input_path: str, gemini_api_key: str, api_config: dict = None) ->
                 import base64
                 image_base64 = base64.b64encode(image_data).decode('utf-8')
                 
+                # Detect actual image format
+                import mimetypes
+                mime_type, _ = mimetypes.guess_type(input_path)
+                if not mime_type or not mime_type.startswith('image/'):
+                    # Default to jpeg if can't detect
+                    mime_type = 'image/jpeg'
+                
                 prompt = [
                     """Analyze this image and extract ONLY verifiable factual information.
                     
@@ -197,7 +215,7 @@ def image2text(input_path: str, gemini_api_key: str, api_config: dict = None) ->
                     
                     Provide ONLY the factual, verifiable information visible in this image.""",
                     {
-                        "mime_type": "image/jpeg",
+                        "mime_type": mime_type,
                         "data": image_base64
                     }
                 ]
@@ -208,6 +226,13 @@ def image2text(input_path: str, gemini_api_key: str, api_config: dict = None) ->
             
             import base64
             image_base64 = base64.b64encode(image_data).decode('utf-8')
+            
+            # Detect actual image format
+            import mimetypes
+            mime_type, _ = mimetypes.guess_type(input_path)
+            if not mime_type or not mime_type.startswith('image/'):
+                # Default to jpeg if can't detect
+                mime_type = 'image/jpeg'
             
             # Use local file with enhanced factual focus
             prompt = [
@@ -229,17 +254,31 @@ def image2text(input_path: str, gemini_api_key: str, api_config: dict = None) ->
                 
                 Provide ONLY the factual, verifiable information visible in this image.""",
                 {
-                    "mime_type": "image/jpeg",
+                    "mime_type": mime_type,
                     "data": image_base64
                 }
             ]
         
         response = model.generate_content(prompt)
+        
+        # Validate response
+        if not response or not response.text:
+            return "Error: No response from Gemini Vision API"
+            
         return response.text
         
     except Exception as e:
         logger.error(f"Error processing image with Gemini Vision: {e}")
-        return f"Error processing image: {str(e)}"
+        # Try to provide more helpful error messages
+        error_msg = str(e).lower()
+        if "400" in error_msg and "invalid" in error_msg:
+            return "Error: Image format not supported. Please try a different image format (JPEG, PNG, GIF, etc.)"
+        elif "quota" in error_msg or "limit" in error_msg:
+            return "Error: API quota exceeded. Please try again later."
+        elif "api key" in error_msg or "authentication" in error_msg:
+            return "Error: Invalid API key. Please check your Gemini API configuration."
+        else:
+            return f"Error processing image: {str(e)}"
 
 
 def video2text(input_path: str, gemini_api_key: str, api_config: dict = None) -> str:
