@@ -38,7 +38,7 @@ def test_enhanced_decomposition():
     
     # Initialize components
     try:
-        llm_client = GeminiClient(api_config=api_config, model="gemini-1.5-pro")
+        llm_client = GeminiClient(api_config=api_config, model="gemini-2.5-flash")
         prompt = ChatGPTPrompt()
         decomposer = Decompose(llm_client, prompt)
         print("✅ Successfully initialized Gemini client and decomposer")

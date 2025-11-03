@@ -53,7 +53,7 @@ def initialize_factcheck(config_path="api_config.yaml"):
 
         # Initialize FactCheck instance
         factcheck_instance = FactCheck(
-            default_model="gemini-1.5-pro",
+            default_model="gemini-2.5-flash",
             api_config=api_config,
             prompt="chatgpt_prompt",
             retriever="serper",
@@ -296,7 +296,7 @@ def handle_config():
             if 'gemini_api_key' in data or 'serper_api_key' in data:
                 logger.info("Reinitializing FactCheck with new API keys")
                 factcheck_instance = FactCheck(
-                    default_model="gemini-1.5-pro",
+                    default_model="gemini-2.5-flash",
                     api_config=api_config,
                     prompt="chatgpt_prompt",
                     retriever="serper",

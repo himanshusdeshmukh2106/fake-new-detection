@@ -54,7 +54,7 @@ else:
     try:
         # Initialize FactCheck instance
         factcheck_instance = FactCheck(
-            default_model="gemini-1.5-pro",
+            default_model="gemini-2.5-flash",
             api_config=api_config,
             prompt="chatgpt_prompt",
             retriever="serper",

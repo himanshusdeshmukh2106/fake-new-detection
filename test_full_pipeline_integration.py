@@ -35,7 +35,7 @@ def test_full_pipeline_integration():
     try:
         # Using default Gemini configuration
         factcheck_instance = FactCheck(
-            default_model="gemini-1.5-pro",
+            default_model="gemini-2.5-flash",
             api_config=api_config,
             prompt="chatgpt_prompt",  # This uses our enhanced prompts
             retriever="serper"
