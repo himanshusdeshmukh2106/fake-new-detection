@@ -176,7 +176,9 @@ factcheck/utils/openai_key.py
 factcheck/config/secret_dict.py
 api_config.yaml
 gcs-service-account.json
-*.json
+# Ignore specific JSON files, not all
+factcheck/config/secret_dict.json
+assets/response.json
 
 # gptcache file
 data_map.txt
@@ -186,12 +188,14 @@ faiss.index
 
 # test data
 demo_data/test_api_config.yaml
-assets/response.json
 # Keep development config file secret but allow production config
 api_config.yaml
 # Allow production config to be committed
 !api_config_production.yaml
 !*.md
+# Allow Chrome extension files
+!chrome-extension/*.json
+!chrome-extension/**/*.json
 
 # ML Models (too large for GitHub - download separately)
 factcheck/ml_models/trained_model/*.safetensors
