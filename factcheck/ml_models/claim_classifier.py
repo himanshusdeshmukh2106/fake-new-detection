@@ -29,7 +29,9 @@ class ClaimClassifier:
             
             # Load label mapping
             with open(os.path.join(model_path, 'label_map.json'), 'r') as f:
-                self.label_map = json.load(f)
+                label_map_loaded = json.load(f)
+                # Convert string keys to integers
+                self.label_map = {int(k): v for k, v in label_map_loaded.items()}
         else:
             # Use base model with default labels
             self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
