@@ -192,3 +192,11 @@ api_config.yaml
 # Allow production config to be committed
 !api_config_production.yaml
 !*.md
+
+# ML Models (too large for GitHub - download separately)
+factcheck/ml_models/trained_model/*.safetensors
+factcheck/ml_models/trained_model/model.safetensors
+factcheck/ml_models/trained_model/pytorch_model.bin
+# But allow model config files
+!factcheck/ml_models/trained_model/*.json
+!factcheck/ml_models/trained_model/vocab.txt
