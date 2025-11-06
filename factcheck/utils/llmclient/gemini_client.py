@@ -6,7 +6,7 @@ from .base import BaseClient
 class GeminiClient(BaseClient):
     def __init__(
         self,
-        model: str = "gemini-1.5-pro",
+        model: str = "gemini-2.5-flash",
         api_config: dict = None,
         max_requests_per_minute=15,  # Gemini has lower rate limits
         request_window=60,

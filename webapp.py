@@ -174,6 +174,7 @@ if __name__ == "__main__":
         api_config=api_config,
         prompt=args.prompt,
         retriever=args.retriever,
+        num_seed_retries=1,  # Reduced from 3 to 1 for faster processing
     )
 
     # Make factcheck_instance globally available

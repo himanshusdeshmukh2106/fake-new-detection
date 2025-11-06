@@ -137,8 +137,8 @@ def image2text(input_path: str, gemini_api_key: str, api_config: dict = None) ->
         # Upload image to Google Cloud Storage
         image_url = upload_to_gcs(input_path, api_config)
         
-        # Use Gemini 2.0 Flash Experimental model (most current vision model)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # Use Gemini 2.5 Flash model (most current vision model)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # If image is uploaded to GCS, download it and convert to base64 for Gemini
         if image_url.startswith('http'):

@@ -305,14 +305,76 @@
             margin-bottom: 10px;
         }
         
-        .loading-timer {
-            color: #6c757d;
-            font-size: 14px;
-        }
+
         
         .content-blur {
             filter: blur(2px);
             pointer-events: none;
+        }
+        
+        /* Claim Card Styles */
+        .claim-card {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .claim-card.refuted {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .claim-card.supported {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .claim-card.controversial {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .claim-badge {
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        
+        .claim-badge.refuted {
+            background: #dc3545;
+        }
+        
+        .claim-badge.supported {
+            background: #28a745;
+        }
+        
+        .claim-badge.controversial {
+            background: #ffc107;
+        }
+        
+        .claim-status {
+            font-weight: bold;
+        }
+        
+        .claim-status.refuted {
+            color: #721c24;
+        }
+        
+        .claim-status.supported {
+            color: #155724;
+        }
+        
+        .claim-status.controversial {
+            color: #856404;
+        }
+        
+        .claim-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
         }
         
         /* Responsive */
@@ -441,10 +503,6 @@
                         <button type="submit" class="check-btn" id="check-btn">
                             Check Facts
                         </button>
-                        
-                        <div id="timer" style="text-align: center; margin-top: 10px; color: #6c757d; display: none;">
-                            Processing... <span id="elapsed-time">0</span> seconds
-                        </div>
                     </form>
                 </div>
             </div>
@@ -470,24 +528,14 @@
                         </div>
                         <div class="card-body">
                             {% for claim_detail in responses['claim_detail'] %}
-                                <div style="margin-bottom: 15px; padding: 10px; border-radius: 5px; cursor: pointer;
-                                    {% if claim_detail['factuality'] == 0 %}background: #f8d7da; border: 1px solid #f5c6cb;
-                                    {% elif claim_detail['factuality'] == 1 %}background: #d4edda; border: 1px solid #c3e6cb;
-                                    {% else %}background: #fff3cd; border: 1px solid #ffeaa7;{% endif %}"
+                                <div class="claim-card {% if claim_detail['factuality'] == 0 %}refuted{% elif claim_detail['factuality'] == 1 %}supported{% else %}controversial{% endif %}"
                                     onclick="switchClaim({{ loop.index }})"
                                     title="Click to view evidence for this claim">
-                                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                                        <span style="background: 
-                                            {% if claim_detail['factuality'] == 0 %}#dc3545
-                                            {% elif claim_detail['factuality'] == 1 %}#28a745
-                                            {% else %}#ffc107{% endif %}; 
-                                            color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-right: 10px;">
+                                    <div class="claim-header">
+                                        <span class="claim-badge {% if claim_detail['factuality'] == 0 %}refuted{% elif claim_detail['factuality'] == 1 %}supported{% else %}controversial{% endif %}">
                                             Claim {{ loop.index }}
                                         </span>
-                                        <span style="font-weight: bold; color: 
-                                            {% if claim_detail['factuality'] == 0 %}#721c24
-                                            {% elif claim_detail['factuality'] == 1 %}#155724
-                                            {% else %}#856404{% endif %};">
+                                        <span class="claim-status {% if claim_detail['factuality'] == 0 %}refuted{% elif claim_detail['factuality'] == 1 %}supported{% else %}controversial{% endif %}">
                                             {% if claim_detail['factuality'] == 0 %}REFUTED
                                             {% elif claim_detail['factuality'] == 1 %}SUPPORTED
                                             {% else %}CONTROVERSIAL{% endif %}
@@ -643,6 +691,7 @@ document.getElementById('fact-check-form').addEventListener('submit', function(e
         return;
     }
     
+    // Don't prevent default - let form submit naturally, but show loading state
     // Show loading overlay and blur content
     const loadingOverlay = document.getElementById('loading-overlay');
     const appContainer = document.querySelector('.app-container');
@@ -654,23 +703,6 @@ document.getElementById('fact-check-form').addEventListener('submit', function(e
     const submitBtn = document.getElementById('check-btn');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Processing...';
-    
-    // Start timer for loading overlay
-    let seconds = 0;
-    const timer = setInterval(() => {
-        seconds++;
-        document.getElementById('loading-elapsed-time').textContent = seconds;
-    }, 1000);
-    
-    // Store timer reference to clear it later if needed
-    window.factCheckTimer = timer;
-});
-
-// Clear timer on page unload
-window.addEventListener('beforeunload', function() {
-    if (window.factCheckTimer) {
-        clearInterval(window.factCheckTimer);
-    }
 });
 
 // Hide loading overlay when page loads (in case of results or errors)
@@ -679,11 +711,7 @@ window.addEventListener('load', function() {
     const appContainer = document.querySelector('.app-container');
     
     loadingOverlay.style.display = 'none';
-    appContainer.classList.remove('content-blur');
-    
-    if (window.factCheckTimer) {
-        clearInterval(window.factCheckTimer);
-    }
+    appContainer.classList.remove('content-blur')
 });
 </script>
 
@@ -692,7 +720,6 @@ window.addEventListener('load', function() {
     <div class="loading-content">
         <div class="loading-spinner"></div>
         <div class="loading-text">Processing your fact-check request...</div>
-        <div class="loading-timer">Time elapsed: <span id="loading-elapsed-time">0</span> seconds</div>
     </div>
 </div>
 
